@@ -1,18 +1,20 @@
 import sys
 from Xray.components.data_ingestion import DataIngestion
 from Xray.components.data_transformation import DataTransformation
-from Xray.components.model_training import ModelTrainer
-from Xray.components.model_evaluation import ModelEvaluation
-from Xray.components.model_pusher import ModelPusher
 from Xray.exception import XRayException
 from Xray.logger import logging
-from Xray.entity.artifact_entity import DataIngestionArtifact
-from Xray.entity.config_entity import DataIngestionConfig
+from Xray.entity.artifact_entity import (
+    DataIngestionArtifact,
+    DataTransformationArtifact)
+from Xray.entity.config_entity import (
+    DataIngestionConfig,
+    DataTransformationConfig)
     
 
 class TrainPipeline:
     def __init__(self):
         self.data_ingestion_config = DataIngestionConfig()
+        self.data_transformation_config = DataTransformationConfig()
     
         
     def start_data_ingestion(self) -> DataIngestionArtifact:
@@ -37,9 +39,45 @@ class TrainPipeline:
 
         except Exception as e:
             raise XRayException(e, sys)
-            
-            
         
-if __name__ == "__main__":
-    train_pipeline = TrainPipeline()
-    train_pipeline.start_data_ingestion()
+    def start_data_transformation(self, data_ingestion_artifact: DataIngestionArtifact) -> DataTransformationArtifact:
+        logging.info(
+            "Entered the start_data_transformation method of TrainPipeline class"
+        )
+
+        try:
+            data_transformation = DataTransformation(
+                data_ingestion_artifact=data_ingestion_artifact,
+                data_transformation_config=self.data_transformation_config,
+            )
+
+            data_transformation_artifact = (
+                data_transformation.initiate_data_transformation()
+            )
+
+            logging.info(
+                "Exited the start_data_transformation method of TrainPipeline class"
+            )
+
+            return data_transformation_artifact
+
+        except Exception as e:
+            raise XRayException(e, sys)
+    
+        
+        
+        
+    def run_pipeline(self):
+        logging.info("Entered the run_pipeline method of TrainPipeline  class")
+
+        try:
+            data_ingestion_artifacts: DataIngestionArtifact = self.start_data_ingestion()
+            data_transformation_artifact: DataTransformationArtifact = (
+                self.start_data_transformation(
+                    data_ingestion_artifact=data_ingestion_artifacts
+                )
+            )
+
+            logging.info("Exited the run_pipeline method of TrainPipeline class")
+        except Exception as e:
+            raise XRayException(e, sys)
