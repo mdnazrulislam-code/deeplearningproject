@@ -25,7 +25,9 @@ class DataIngestion:
         except Exception as e:
             raise XRayException(e, sys)
         
-    def initiate_data_ingestion(self)-> DataIngestionArtifact:
+        
+        
+    def initiate_data_ingestion(self) -> DataIngestionArtifact:
         logging.info(
             "Entered the initiate_data_ingestion method of Data ingestion class")         
         try:
