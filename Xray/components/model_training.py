@@ -22,45 +22,69 @@ from Xray.ml.model.arch import Net
 
 
 
-
 class ModelTrainer:
-    def __init__(self,data_transformation_artifact: DataTransformationArtifact,model_trainer_config: ModelTrainerConfig):
+    def __init__(
+        self,
+        data_transformation_artifact: DataTransformationArtifact,
+        model_trainer_config: ModelTrainerConfig,
+    ):
         self.model_trainer_config: ModelTrainerConfig = model_trainer_config
-        self.data_transformation_artifact: DataTransformationArtifact = (data_transformation_artifact)
-        self.model: Module = Net()
 
+        self.data_transformation_artifact: DataTransformationArtifact = (
+            data_transformation_artifact
+        )
+
+        self.model: Module = Net()
 
     def train(self, optimizer: Optimizer) -> None:
         """
         Description: To train the model
+
         input: model,device,train_loader,optimizer,epoch
+
         output: loss, batch id and accuracy
         """
         logging.info("Entered the train method of Model trainer class")
 
         try:
             self.model.train()
+
             pbar = tqdm(self.data_transformation_artifact.transformed_train_object)
+
             correct: int = 0
+
             processed = 0
+
             for batch_idx, (data, target) in enumerate(pbar):
                 data, target = data.to(DEVICE), target.to(DEVICE)
+
                 # Initialization of gradient
                 optimizer.zero_grad()
+
                 # In PyTorch, gradient is accumulated over backprop and even though thats used in RNN generally not used in CNN
                 # or specific requirements
                 ## prediction on data
+
                 y_pred = self.model(data)
+
                 # Calculating loss given the prediction
                 loss = F.nll_loss(y_pred, target)
+
                 # Backprop
                 loss.backward()
+
                 optimizer.step()
+
                 # get the index of the log-probability corresponding to the max value
                 pred = y_pred.argmax(dim=1, keepdim=True)
+
                 correct += pred.eq(target.view_as(pred)).sum().item()
+
                 processed += len(data)
-                pbar.set_description(desc=f"Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}")
+
+                pbar.set_description(
+                    desc=f"Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}"
+                )
 
             logging.info("Exited the train method of Model trainer class")
 
@@ -69,27 +93,42 @@ class ModelTrainer:
         
 
 
-
     def test(self) -> None:
         try:
             """
             Description: To test the model
+
             input: model, DEVICE, test_loader
+
             output: average loss and accuracy
+
             """
             logging.info("Entered the test method of Model trainer class")
 
             self.model.eval()
+
             test_loss: float = 0.0
+
             correct: int = 0
+
             with torch.no_grad():
-                for (data,target,) in self.data_transformation_artifact.transformed_test_object:
+                for (
+                    data,
+                    target,
+                ) in self.data_transformation_artifact.transformed_test_object:
                     data, target = data.to(DEVICE), target.to(DEVICE)
+
                     output = self.model(data)
+
                     test_loss += F.nll_loss(output, target, reduction="sum").item()
+
                     pred = output.argmax(dim=1, keepdim=True)
+
                     correct += pred.eq(target.view_as(pred)).sum().item()
-                test_loss /= len(self.data_transformation_artifact.transformed_test_object.dataset)
+
+                test_loss /= len(
+                    self.data_transformation_artifact.transformed_test_object.dataset
+                )
 
                 print(
                     "Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n".format(
@@ -127,7 +166,6 @@ class ModelTrainer:
             raise XRayException(e, sys)
         
 
-        
 
     def initiate_model_trainer(self) -> ModelTrainerArtifact:
         try:
@@ -159,6 +197,7 @@ class ModelTrainer:
             os.makedirs(self.model_trainer_config.artifact_dir, exist_ok=True)
 
             torch.save(model, self.model_trainer_config.trained_model_path)
+            os.system(f"cp {self.model_trainer_config.trained_model_path} model/")
 
             train_transforms_obj = joblib.load(
                 self.data_transformation_artifact.train_transform_file_path
@@ -184,5 +223,3 @@ class ModelTrainer:
 
         except Exception as e:
             raise XRayException(e, sys)
-
-
