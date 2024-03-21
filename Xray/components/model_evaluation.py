@@ -17,12 +17,18 @@ from Xray.logger import logging
 from Xray.ml.model.arch import Net
 
 
-
-
 class ModelEvaluation:
-    def __init__(self,data_transformation_artifact: DataTransformationArtifact,model_evaluation_config: ModelEvaluationConfig,model_trainer_artifact: ModelTrainerArtifact,):
+    def __init__(
+        self,
+        data_transformation_artifact: DataTransformationArtifact,
+        model_evaluation_config: ModelEvaluationConfig,
+        model_trainer_artifact: ModelTrainerArtifact,
+    ):
+
         self.data_transformation_artifact = data_transformation_artifact
+
         self.model_evaluation_config = model_evaluation_config
+
         self.model_trainer_artifact = model_trainer_artifact
 
 
@@ -31,27 +37,38 @@ class ModelEvaluation:
         logging.info("Entered the configuration method of Model evaluation class")
 
         try:
-            test_dataloader: DataLoader = (self.data_transformation_artifact.transformed_test_object)
+            test_dataloader: DataLoader = (
+                self.data_transformation_artifact.transformed_test_object
+            )
+
             model: Module = Net()
+
             model: Module = torch.load(self.model_trainer_artifact.trained_model_path)
+
             model.to(self.model_evaluation_config.device)
+
             cost: Module = CrossEntropyLoss()
-            '''optimizer: Optimizer = SGD(
+
+            optimizer: Optimizer = SGD(
                 model.parameters(), **self.model_evaluation_config.optimizer_params
-            )'''
+            )
+
             model.eval()
+
             logging.info("Exited the configuration method of Model evaluation class")
-            return test_dataloader, model, cost
+
+            return test_dataloader, model, cost, optimizer
+
         except Exception as e:
             raise XRayException(e, sys)
         
-        
+
 
     def test_net(self) -> float:
         logging.info("Entered the test_net method of Model evaluation class")
 
         try:
-            test_dataloader, net, cost = self.configuration()
+            test_dataloader, net, cost, _ = self.configuration()
 
             with torch.no_grad():
                 holder = []
@@ -101,6 +118,8 @@ class ModelEvaluation:
 
         except Exception as e:
             raise XRayException(e, sys)
+        
+        
 
     def initiate_model_evaluation(self) -> ModelEvaluationArtifact:
         logging.info(

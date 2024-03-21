@@ -25,4 +25,4 @@ wincertstore==0.2
 boto3
 mypy-boto3-s3
 streamlit 
--e .
+# -e .

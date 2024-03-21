@@ -16,7 +16,6 @@ from Xray.exception import XRayException
 from Xray.logger import logging
 
 
-
 class DataTransformation:
     def __init__(
         self,
@@ -59,8 +58,6 @@ class DataTransformation:
 
         except Exception as e:
             raise XRayException(e, sys)
-        
-
 
     def transforming_testing_data(self) -> transforms.Compose:
         logging.info(
@@ -87,10 +84,7 @@ class DataTransformation:
 
         except Exception as e:
             raise XRayException(e, sys)
-        
 
-
-    
     def data_loader(
         self, train_transform: transforms.Compose, test_transform: transforms.Compose) -> Tuple[DataLoader, DataLoader]:
         try:
@@ -122,10 +116,7 @@ class DataTransformation:
 
         except Exception as e:
             raise XRayException(e, sys)
-        
 
-
-    
     def initiate_data_transformation(self) -> DataTransformationArtifact:
         try:
             logging.info(
@@ -138,11 +129,17 @@ class DataTransformation:
 
             os.makedirs(self.data_transformation_config.artifact_dir, exist_ok=True)
 
-            joblib.dump(train_transform, self.data_transformation_config.train_transforms_file)
+            joblib.dump(
+                train_transform, self.data_transformation_config.train_transforms_file
+            )
 
-            joblib.dump(test_transform, self.data_transformation_config.test_transforms_file)
+            joblib.dump(
+                test_transform, self.data_transformation_config.test_transforms_file
+            )
 
-            train_loader, test_loader = self.data_loader(train_transform=train_transform, test_transform=test_transform)
+            train_loader, test_loader = self.data_loader(
+                train_transform=train_transform, test_transform=test_transform
+            )
 
             data_transformation_artifact: DataTransformationArtifact = DataTransformationArtifact(
                 transformed_train_object=train_loader,
